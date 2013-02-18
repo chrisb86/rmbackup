@@ -1,0 +1,18 @@
+#Sample conf for backup script
+
+## SSH config for the remote server (default port is 22)
+SSH_USER="rmbackup"
+SSH_SERVER="example.com"
+SSH_PORT=22
+
+# Which folders sould be backed up from the remote server?
+REMOTE_SOURCES=(/root /etc /home /var)
+
+# In which folder should we store the backups on the backup server 
+# (subdirs for the server will be created by the script)?
+
+TARGET="/Backups/"
+
+# Additional command line parameters for ssh (verbose mode, exclude patterns...
+# see man rsync for further information)
+# RSYNC_CONF=(-v)
