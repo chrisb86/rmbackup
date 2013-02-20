@@ -92,6 +92,11 @@ Backups will now be taken hourly.
 
 **2013-02-18**
 
+ - We're now unsetting the config before loading a new one
+ - Mail sending after backup can now be specified per host instead of a global setting
+
+**2013-02-18**
+
 - First commit
 
 ## License

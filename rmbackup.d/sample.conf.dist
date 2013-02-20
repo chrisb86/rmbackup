@@ -16,3 +16,6 @@ TARGET="/Backups/"
 # Additional command line parameters for ssh (verbose mode, exclude patterns...
 # see man rsync for further information)
 # RSYNC_CONF=(-v)
+
+# Uncomment and add your address if you want to receive the script ouput via e-mail
+#MAILREC="jdoe@example.com"

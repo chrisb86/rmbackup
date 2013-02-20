@@ -26,26 +26,26 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Where to look for config files
-CONFLOCATION=/etc/rmbackup.d/*.conf
-
-# Uncomment and add your address if you want to receive the script ouput via e-mail
-#MAILREC="jdoe@example.com"
+CONFLOCATION=/home/chris/bin/backup.d/*.conf
 
 # Give the paths to used tools
 SSH="/usr/bin/ssh"; LN="/bin/ln"; ECHO="/bin/echo"; DATE="/bin/date";
 MAIL="/usr/bin/mail"; RSYNC="/usr/local/bin/rsync";
 LAST="last"; INC="--link-dest=../$LAST"
 
+# Date format for naming the snapshot folders
+TODAY=$($DATE +%Y-%m-%d)
+
+# set some rsync parameters
+RSYNC_CONF_DEFAULT=(--rsync-path='sudo rsync' --delete --quiet)
+
 ### Do not edit below this line ###
 
-# Loop through configs configs
+# Loop through configs
 for f in $CONFLOCATION
 do
-  # set some rsync parameters
-  RSYNC_CONF_DEFAULT=(--rsync-path='sudo rsync' --delete --quiet)
-
-  # Date format for naming the snapshot folders
-  TODAY=$($DATE +%Y-%m-%d)
+  SSH_PORT=22
+  unset $MAILREC
 
   # load config file
   source $f
@@ -89,10 +89,17 @@ do
   # send mail if it's configured
   if [ -n "$MAILREC" ]; then
     if [ $ERROR ];then
-      $MAIL -s "Error Backup $LOG" $MAILREC < $LOG
+      $MAIL -s "Error Backup $SSH_SERVER $LOG" $MAILREC < $LOG
     else
-      $MAIL -s "Backup $LOG" $MAILREC < $LOG
+      $MAIL -s "Backup $SSH_SERVER $LOG" $MAILREC < $LOG
     fi
   fi
+
+  unset SSH_USER
+  unset SSH_SERVER
+  unset SSH_PORT
+  unset REMOTE_SOURCES
+  unset TARGET
+  unset RSYNC_CONF
 
 done
