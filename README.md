@@ -3,7 +3,7 @@
 Remote server backup with rsync and config files
 Based on [Backup mit RSYNC] (http://wiki.ubuntuusers.de/Skripte/Backup_mit_RSYNC)
 
-rmbackup is a bash script that uses rsync to do incremental centralized backups of remote servers. It can be configured by config files.
+rmbackup is a bash script that uses rsync to do incremental centralized backups of remote servers. It can backup MySQL databases too. Configuration happens in config files.
 
 There has to be a user on the remote server that is able to run rsync with root privileges and the backup server must be able to login without a password. The script should be run by cron on the backup server.
 
@@ -87,11 +87,35 @@ There has to be a user on the remote server that is able to run rsync with root 
 		15 */1 * * * /home/rmbackup/bin/rmbackup.sh --backup-files
 		0 1 * * * /home/rmbackup/bin/rmbackup.sh --backup-mysql
 
-Backups will now be taken hourly.
+File backups will now be taken hourly. The backup of the MySQL databases will be backed up every night at one o'clock (when there's probably lower traffic on the host).
+
+## Setting up MySQL backups
+
+**On the remote host**
+
+- Create a new user that is only able to read and lock the databases.
+
+		$ mysql
+		> grant select, lock tables on *.* to 'rmbackup'@'localhost' identified by 'password';
+
+- We don't wan't to type the password every time the backup runs. So we create a file called .my.cnf in the home directory of the backup user on the remote server. MySQL takes the login credentials from this file
+
+
+		$ vim ~.my.cnf
+
+		# ~/.my.cnf
+		
+		[client]
+		# The following password will be sent to all standard MySQL clients
+		password="yourpassword"
+
+- That's it. If rmbackup sees the file, it will automagically start to backup all databases at the given host.
+
 
 ## Changelog
 
 **2013-02-21**
+
 - Added the ability to backup MySQL databases (just drop a .my.cnf in the remote users home dir)
 - Added command line switches --backup-mysql and --backup-files
 - Restructured the code
