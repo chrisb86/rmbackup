@@ -90,7 +90,10 @@ Backups will now be taken hourly.
 
 ## Changelog
 
-**2013-02-18**
+**2013-02-21**
+- Added the ability to backup mysql databases (just drop a .my.cnf in the remote users home dir)
+
+**2013-02-20**
 
  - We're now unsetting the config before loading a new one
  - Mail sending after backup can now be specified per host instead of a global setting

@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Where to look for config files
-CONFLOCATION=/home/chris/bin/backup.d/*.conf
+CONFLOCATION=/home/chris/bin/rmbackup.d/*.conf
 
 # Give the paths to used tools
 SSH="/usr/bin/ssh"; LN="/bin/ln"; ECHO="/bin/echo"; DATE="/bin/date";
@@ -51,7 +51,7 @@ do
   source $f
   
   LOG=$0.log
-  echo $($DATE)" starting backup for "$SSH_SERVER" (using config file"$f")" >> $LOG
+  echo $($DATE)" starting file backup for "$SSH_SERVER" (using config file"$f")" >> $LOG
 
   # some path fiddeling
   if [ "${TARGET:${#TARGET}-1:1}" != "/" ]; then
@@ -84,7 +84,48 @@ do
         ERROR=1
       fi 
     fi
-  echo $($DATE)" finished backup for "$SSH_SERVER"." >> $LOG
+  echo $($DATE)" finished file backup for "$SSH_SERVER"." >> $LOG
+
+  # Check if there's a .my.cnf on the remote server
+  HASMYCNF=`$S $SSH_SERVER "test -e ~/.my.cnf && echo 1 || echo 0"`
+
+  # Run mysql backup for all databases if we have a .my.cnf
+  if [ ${HASMYCNF} = 1 ]; then
+  
+    echo $($DATE)" starting mysql backup for "$SSH_SERVER"." >> $LOG
+
+    # Create the backup target if it doesn't exist
+    TARGET="$TARGET/mysql/$TODAY"
+    mkdir -p $TARGET
+
+    # Get databases
+    DATABASES=$($S $SSH_SERVER mysql -Bse "'show databases;'")
+
+    # dump the compressed databases to target
+    for D in $DATABASES;
+    do
+       if [ "$D" != "information_schema" ] && [ "$D" != "performance_schema" ];
+       then
+          $S $SSH_SERVER mysqldump $D | gzip -c > $TARGET/$D.sql.gz
+       fi
+    done
+
+    echo $($DATE)" finished mysql backup for "$SSH_SERVER"." >> $LOG
+  fi
+
+  # Unset server specific variables
+  unset SSH_USER
+  unset SSH_SERVER
+  unset SSH_PORT
+  unset S
+  unset REMOTE_SOURCES
+  unset TARGET
+  unset RSYNC_CONF
+  unset DATABASES
+  unset D
+  unset hasMycnf
+  unset MAILREC
+  unset ERROR
 
   # send mail if it's configured
   if [ -n "$MAILREC" ]; then
@@ -94,12 +135,5 @@ do
       $MAIL -s "Backup $SSH_SERVER $LOG" $MAILREC < $LOG
     fi
   fi
-
-  unset SSH_USER
-  unset SSH_SERVER
-  unset SSH_PORT
-  unset REMOTE_SOURCES
-  unset TARGET
-  unset RSYNC_CONF
 
 done
