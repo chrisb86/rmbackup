@@ -39,78 +39,98 @@ TODAY=$($DATE +%Y-%m-%d)
 # set some rsync parameters
 RSYNC_CONF_DEFAULT=(--rsync-path='sudo rsync' --delete --quiet)
 
+LOG=$0.log
+
 ### Do not edit below this line ###
+
+
+while [ $# -gt 0 ]; do    # Until we tun out of parameters . . .
+  if [ $1 = "--backup-mysql" ] || [ $1 = "-m" ]; then
+    DOBACKUPMYSQL="true"
+  elif [ $1 = "--backup-files" ] || [ $1 = "-f" ]; then
+    DOBACKUPFILES="true"
+  fi
+  shift       # Check next set of parameters.
+done
 
 # Loop through configs
 for f in $CONFLOCATION
 do
+  # Set some defaults
   SSH_PORT=22
-  unset $MAILREC
 
   # load config file
   source $f
-  
-  LOG=$0.log
-  echo $($DATE)" starting file backup for "$SSH_SERVER" (using config file"$f")" >> $LOG
 
   # some path fiddeling
   if [ "${TARGET:${#TARGET}-1:1}" != "/" ]; then
     TARGET=$TARGET/
   fi
 
+  if [ "$SSH_USER" ] && [ "$SSH_PORT" ]; then
+      S="$SSH -p $SSH_PORT -l $SSH_USER";
+  fi
+
   TARGET=$TARGET$SSH_SERVER/
 
-    if [ "$SSH_USER" ] && [ "$SSH_PORT" ]; then
-      S="$SSH -p $SSH_PORT -l $SSH_USER";
-    fi
+  if [ "$DOBACKUPFILES" == "true" ]; then
+
+    $ECHO $($DATE)" starting file backup for "$SSH_SERVER" (using config file"$f")" >> $LOG
 
     # do the backup
     for SOURCE in "${REMOTE_SOURCES[@]}"
-      do
-        if [ "$S" ] && [ "$SSH_SERVER" ] && [ -z "$TOSSH" ]; then
-          $ECHO "$RSYNC -e \"$S\" -avR \"$SSH_SERVER:$SOURCE\" ${RSYNC_CONF_DEFAULT[@]} ${RSYNC_CONF[@]} $TARGET$TODAY $INC"  >> $LOG 
-          $RSYNC -e "$S" -avR "$SSH_SERVER:\"$SOURCE\"" "${RSYNC_CONF_DEFAULT[@]}" "${RSYNC_CONF[@]}" "$TARGET"$TODAY $INC >> $LOG 2>&1 
-          if [ $? -ne 0 ]; then
-            ERROR=1
-          fi 
+    do
+      if [ "$S" ] && [ "$SSH_SERVER" ] && [ -z "$TOSSH" ]; then
+        $ECHO "$RSYNC -e \"$S\" -avR \"$SSH_SERVER:$SOURCE\" ${RSYNC_CONF_DEFAULT[@]} ${RSYNC_CONF[@]} $TARGET$TODAY $INC"  >> $LOG 
+        $RSYNC -e "$S" -avR "$SSH_SERVER:\"$SOURCE\"" "${RSYNC_CONF_DEFAULT[@]}" "${RSYNC_CONF[@]}" "$TARGET"$TODAY $INC >> $LOG 2>&1 
+        if [ $? -ne 0 ]; then
+          ERROR=1
         fi 
+      fi 
     done
 
     # move the folders and link "last"
-    if ( [ "$S" ] && [ "$SSH_SERVER" ] && [ -z "$TOSSH" ] ) || ( [ -z "$S" ] );  then
+    if ( [ "$S" ] && [ "$SSH_SERVER" ] ) || ( [ -z "$S" ] );  then
       $ECHO "$LN -nsf $TARGET$TODAY $TARGET$LAST" >> $LOG
       $LN -nsf "$TARGET"$TODAY "$TARGET"$LAST  >> $LOG 2>&1 
       if [ $? -ne 0 ]; then
         ERROR=1
       fi 
     fi
-  echo $($DATE)" finished file backup for "$SSH_SERVER"." >> $LOG
+    $ECHO $($DATE)" finished file backup for "$SSH_SERVER"." >> $LOG
+  fi
 
-  # Check if there's a .my.cnf on the remote server
-  HASMYCNF=`$S $SSH_SERVER "test -e ~/.my.cnf && echo 1 || echo 0"`
+  # Backup MySQL databases
 
-  # Run mysql backup for all databases if we have a .my.cnf
-  if [ ${HASMYCNF} = 1 ]; then
-  
-    echo $($DATE)" starting mysql backup for "$SSH_SERVER"." >> $LOG
+  if [ "$DOBACKUPMYSQL" == "true" ]; then
 
-    # Create the backup target if it doesn't exist
-    TARGET="$TARGET/mysql/$TODAY"
-    mkdir -p $TARGET
+    # Check if there's a .my.cnf on the remote server
+    HASMYCNF=`$S $SSH_SERVER "test -e ~/.my.cnf && echo 1 || echo 0"`
 
-    # Get databases
-    DATABASES=$($S $SSH_SERVER mysql -Bse "'show databases;'")
+    # Run mysql backup for all databases if we have a .my.cnf
+    if [ ${HASMYCNF} = 1 ]; then
 
-    # dump the compressed databases to target
-    for D in $DATABASES;
-    do
-       if [ "$D" != "information_schema" ] && [ "$D" != "performance_schema" ];
-       then
+      $ECHO $($DATE)" starting mysql backup for "$SSH_SERVER"." >> $LOG
+
+      # Create the backup target if it doesn't exist
+      TARGET="$TARGET/mysql/$TODAY"
+      mkdir -p $TARGET
+
+      # Get databases
+      DATABASES=$($S $SSH_SERVER mysql -Bse "'show databases;'")
+
+      # dump the compressed databases to target
+      for D in $DATABASES;
+      do
+       if [ "$D" != "information_schema" ] && [ "$D" != "performance_schema" ]; then
           $S $SSH_SERVER mysqldump $D | gzip -c > $TARGET/$D.sql.gz
        fi
-    done
-
-    echo $($DATE)" finished mysql backup for "$SSH_SERVER"." >> $LOG
+      done
+      
+      $ECHO $($DATE)" finished mysql backup for "$SSH_SERVER"." >> $LOG
+    else
+      $ECHO $($DATE)" Couldn't find .my.cnf on "$SSH_SERVER". Skipping MySQL backup." >> $LOG
+    fi
   fi
 
   # Unset server specific variables
@@ -135,5 +155,4 @@ do
       $MAIL -s "Backup $SSH_SERVER $LOG" $MAILREC < $LOG
     fi
   fi
-
 done

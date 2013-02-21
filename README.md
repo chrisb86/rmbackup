@@ -84,14 +84,17 @@ There has to be a user on the remote server that is able to run rsync with root 
   		
 		#minute hour mday month wday command
 		#
-		0 */1 * * * /home/rmbackup/bin/backup.sh
+		15 */1 * * * /home/rmbackup/bin/rmbackup.sh --backup-files
+		0 1 * * * /home/rmbackup/bin/rmbackup.sh --backup-mysql
 
 Backups will now be taken hourly.
 
 ## Changelog
 
 **2013-02-21**
-- Added the ability to backup mysql databases (just drop a .my.cnf in the remote users home dir)
+- Added the ability to backup MySQL databases (just drop a .my.cnf in the remote users home dir)
+- Added command line switches --backup-mysql and --backup-files
+- Restructured the code
 
 **2013-02-20**
 
