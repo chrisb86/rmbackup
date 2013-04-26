@@ -43,12 +43,13 @@ LOG=$0.log
 
 ### Do not edit below this line ###
 
-
 while [ $# -gt 0 ]; do    # Until we tun out of parameters . . .
   if [ $1 = "--backup-mysql" ] || [ $1 = "-m" ]; then
     DOBACKUPMYSQL="true"
   elif [ $1 = "--backup-files" ] || [ $1 = "-f" ]; then
     DOBACKUPFILES="true"
+  elif [ $1 = "--cleanup" ] || [ $1 = "-c" ]; then
+    CLEANUP="true"
   fi
   shift       # Check next set of parameters.
 done
@@ -58,6 +59,7 @@ for f in $CONFLOCATION
 do
   # Set some defaults
   SSH_PORT=22
+  KEEP=14
 
   # load config file
   source $f
@@ -72,6 +74,11 @@ do
   fi
 
   TARGET=$TARGET$SSH_SERVER/
+
+  if [ "$CLEANUP" == "true" ]; then
+    find $TARGET -type d \( ! -iname "mysql" ! -iname "last" ! -iname ".*" \) -maxdepth 1 -mtime +$KEEP -exec rm -r '{}' '+'
+    find $TARGET/mysql/ -type d -maxdepth 1 -mtime +$KEEP -exec rm -r '{}' '+'
+  fi
 
   if [ "$DOBACKUPFILES" == "true" ]; then
 
@@ -146,6 +153,7 @@ do
   unset hasMycnf
   unset MAILREC
   unset ERROR
+  unset KEEP
 
   # send mail if it's configured
   if [ -n "$MAILREC" ]; then

@@ -19,3 +19,6 @@ TARGET="/Backups/"
 
 # Uncomment and add your address if you want to receive the script ouput via e-mail
 #MAILREC="jdoe@example.com"
+
+# How many backups should we keep (in days)
+KEEP=14
