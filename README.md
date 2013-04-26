@@ -115,7 +115,7 @@ File backups will now be taken hourly. The backup of the MySQL databases will be
 
 ## Changelog
 
-**2013-02-21**
+**2013-04-26**
 
 - Added some functionality to cleanup old backups.
 
