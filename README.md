@@ -86,8 +86,9 @@ There has to be a user on the remote server that is able to run rsync with root 
 		#
 		15 */1 * * * /home/rmbackup/bin/rmbackup.sh --backup-files
 		0 1 * * * /home/rmbackup/bin/rmbackup.sh --backup-mysql
+		0 2 * * * /home/rmbackup/bin/rmbackup.sh --cleanup
 
-File backups will now be taken hourly. The backup of the MySQL databases will be backed up every night at one o'clock (when there's probably lower traffic on the host).
+File backups will now be taken hourly. The backup of the MySQL databases will be backed up every night at one o'clock (when there's probably lower traffic on the host). AT to o'clock we will cleanup the old backups.
 
 ## Setting up MySQL backups
 
@@ -113,6 +114,10 @@ File backups will now be taken hourly. The backup of the MySQL databases will be
 
 
 ## Changelog
+
+**2013-02-21**
+
+- Added some functionality to cleanup old backups.
 
 **2013-02-21**
 
