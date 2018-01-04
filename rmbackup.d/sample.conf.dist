@@ -1,9 +1,18 @@
 #Sample conf for backup script
 
 ## SSH config for the remote server (default port is 22)
+
+# The user that logs in to the remote server
 SSH_USER="rmbackup"
+
+# The hostname or IP of the remote server
 SSH_SERVER="example.com"
+
+# The SSH port of the remote server
 SSH_PORT=22
+
+# Arguments for SSH (i.e. your keyfile)
+SSH_ARGS=""
 
 # Which folders sould be backed up from the remote server?
 REMOTE_SOURCES=(/root /etc /home /var)

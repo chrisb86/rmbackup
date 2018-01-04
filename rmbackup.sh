@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # Remote server backup with rsync and config files
 # Based on http://wiki.ubuntuusers.de/Skripte/Backup_mit_RSYNC
@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Where to look for config files
-CONFLOCATION=/home/chris/bin/rmbackup.d/*.conf
+CONFLOCATION=/root/bin/rmbackup.d/*.conf
 
 # Give the paths to used tools
 SSH="/usr/bin/ssh"; LN="/bin/ln"; ECHO="/bin/echo"; DATE="/bin/date";
@@ -39,17 +39,19 @@ TODAY=$($DATE +%Y-%m-%d)
 # set some rsync parameters
 RSYNC_CONF_DEFAULT=(--rsync-path='sudo rsync' --delete --quiet)
 
-LOG=$0.log
+LOG=/tank/Backups/rmbackup.log
 
 ### Do not edit below this line ###
 
-while [ $# -gt 0 ]; do    # Until we tun out of parameters . . .
+while [ $# -gt 0 ]; do    # Until we run out of parameters . . .
   if [ $1 = "--backup-mysql" ] || [ $1 = "-m" ]; then
     DOBACKUPMYSQL="true"
   elif [ $1 = "--backup-files" ] || [ $1 = "-f" ]; then
     DOBACKUPFILES="true"
   elif [ $1 = "--cleanup" ] || [ $1 = "-c" ]; then
     CLEANUP="true"
+  elif [ $1 = "--verbose" ] || [ $1 = "-v" ]; then
+    VERBOSE="true"
   fi
   shift       # Check next set of parameters.
 done
@@ -70,25 +72,33 @@ do
   fi
 
   if [ "$SSH_USER" ] && [ "$SSH_PORT" ]; then
-      S="$SSH -p $SSH_PORT -l $SSH_USER";
+      S="$SSH -p $SSH_PORT -l $SSH_USER $SSH_ARGS";
   fi
 
   TARGET=$TARGET$SSH_SERVER/
 
+  ## Create target folder if it doesn't exist
+  mkdir -p $TARGET
+
   if [ "$CLEANUP" == "true" ]; then
+
+    $ECHO $($DATE)" starting cleanup for "$SSH_SERVER" (using config file "$f")" >> $LOG
+
     find $TARGET -type d \( ! -iname "mysql" ! -iname "last" ! -iname ".*" \) -maxdepth 1 -mtime +$KEEP -exec rm -r '{}' '+'
     find $TARGET/mysql/ -type d -maxdepth 1 -mtime +$KEEP -exec rm -r '{}' '+'
   fi
 
   if [ "$DOBACKUPFILES" == "true" ]; then
 
-    $ECHO $($DATE)" starting file backup for "$SSH_SERVER" (using config file"$f")" >> $LOG
+    $ECHO $($DATE)" starting file backup for "$SSH_SERVER" (using config file "$f")" >> $LOG
 
     # do the backup
     for SOURCE in "${REMOTE_SOURCES[@]}"
     do
       if [ "$S" ] && [ "$SSH_SERVER" ] && [ -z "$TOSSH" ]; then
-        $ECHO "$RSYNC -e \"$S\" -avR \"$SSH_SERVER:$SOURCE\" ${RSYNC_CONF_DEFAULT[@]} ${RSYNC_CONF[@]} $TARGET$TODAY $INC"  >> $LOG 
+        if [ "$VERBOSE" == "true" ]; then
+          $ECHO "$RSYNC -e \"$S\" -avR \"$SSH_SERVER:$SOURCE\" ${RSYNC_CONF_DEFAULT[@]} ${RSYNC_CONF[@]} $TARGET$TODAY $INC"  >> $LOG
+        fi
         $RSYNC -e "$S" -avR "$SSH_SERVER:\"$SOURCE\"" "${RSYNC_CONF_DEFAULT[@]}" "${RSYNC_CONF[@]}" "$TARGET"$TODAY $INC >> $LOG 2>&1 
         if [ $? -ne 0 ]; then
           ERROR=1
@@ -98,7 +108,9 @@ do
 
     # move the folders and link "last"
     if ( [ "$S" ] && [ "$SSH_SERVER" ] ) || ( [ -z "$S" ] );  then
-      $ECHO "$LN -nsf $TARGET$TODAY $TARGET$LAST" >> $LOG
+      if [ "$VERBOSE" == "true" ]; then
+        $ECHO "$LN -nsf $TARGET$TODAY $TARGET$LAST" >> $LOG
+      fi
       $LN -nsf "$TARGET"$TODAY "$TARGET"$LAST  >> $LOG 2>&1 
       if [ $? -ne 0 ]; then
         ERROR=1
@@ -130,7 +142,10 @@ do
       for D in $DATABASES;
       do
        if [ "$D" != "information_schema" ] && [ "$D" != "performance_schema" ]; then
-          $S $SSH_SERVER mysqldump $D | gzip -c > $TARGET/$D.sql.gz
+        if [ "$VERBOSE" == "true" ]; then
+          $ECHO "$S $SSH_SERVER mysqldump $D | gzip -c > $TARGET/$D.sql.gz" >> $LOG
+        fi
+        $S $SSH_SERVER mysqldump $D | gzip -c > $TARGET/$D.sql.gz
        fi
       done
       
@@ -144,6 +159,7 @@ do
   unset SSH_USER
   unset SSH_SERVER
   unset SSH_PORT
+  unset SSH_ARGS
   unset S
   unset REMOTE_SOURCES
   unset TARGET

@@ -49,6 +49,7 @@ There has to be a user on the remote server that is able to run rsync with root 
 		SSH_USER="rmbackup"
 		SSH_SERVER="example.com"
 		SSH_PORT=22
+		SSH_ARGS="-i ~/.ssh/id_rsa"
 		
 		# Which folders sould be backed up from the remote server?
 		REMOTE_SOURCES=(/root /etc /home /var)
@@ -66,7 +67,7 @@ There has to be a user on the remote server that is able to run rsync with root 
 
 		# rmbackup.sh
 		
-		#!/bin/bash
+		
 		...		
 		# Where to look for config files
 		CONFLOCATION=/etc/rmbackup.d/*.conf
@@ -114,6 +115,17 @@ File backups will now be taken hourly. The backup of the MySQL databases will be
 
 
 ## Changelog
+
+**2018-01-04**
+
+- Made shebang more portable
+- Added the Option $SSH_ARGS which enbales you to give arguments to ssh when used from rsync
+
+**2013-11-05**
+
+- Added verbose mode for the logfile
+- Added logfile output for the cleanup action
+- Updated the README ;)
 
 **2013-04-26**
 
