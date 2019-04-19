@@ -1,33 +1,28 @@
-#Sample conf for backup script
+#Sample host config for rmbackup
 
-## SSH config for the remote server (default port is 22)
+## The hostname of the server
+#SSH_SERVER="host2342.example.com"
 
-# The user that logs in to the remote server
-SSH_USER="rmbackup"
+## An alias that should be used for the output and in logs. If not set, hostname will be used.
+#SSH_ALIAS="example.com"
 
-# The hostname or IP of the remote server
-SSH_SERVER="example.com"
+## The user that should be used for establishing the SSH connection
+#SSH_USER="rmbackup"
 
-# The SSH port of the remote server
-SSH_PORT=22
+## Additional parameters for rsync (e.g. the keyfile for passwordless logins)
+#SSH_ARGS="-i .ssh/id_ed25519_rmbackup@host2342.example.com"
 
-# Arguments for SSH (i.e. your keyfile)
-SSH_ARGS=""
+## The SSH port of the remote server (default: 22)
+#SSH_PORT=22
 
-# Which folders sould be backed up from the remote server?
-REMOTE_SOURCES=(/root /etc /home /var)
+## Path to the binary that's used for getting more privileges on the remote server like doas or sudo (default: /usr/local/bin/doas)
+#PRIVILEGES_PATH="/usr/local/bin/doas"
 
-# In which folder should we store the backups on the backup server 
-# (subdirs for the server will be created by the script)?
+## Path to the rsync binary on the remote server (default: /usr/local/bin/rsync)
+#RSYNC_PATH="/usr/local/bin/rsync"
 
-TARGET="/Backups/"
+## Additional parameters for rsync (eg. verbose mode, exclude patterns). See man rsync for further information
+#RSYNC_CONF="--ipv6 --exclude-from=/usr/local/etc/rmbackup.d/general.exclude"
 
-# Additional command line parameters for ssh (verbose mode, exclude patterns...
-# see man rsync for further information)
-# RSYNC_CONF=(-v)
-
-# Uncomment and add your address if you want to receive the script ouput via e-mail
-#MAILREC="jdoe@example.com"
-
-# How many backups should we keep (in days)
-KEEP=14
+# Directories that should be included in the backups. The list must be separated by spaces. Spaces in the path must be escaped ("\ ").
+# REMOTE_SOURCES="/root /etc /home /var"

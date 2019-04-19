@@ -1,0 +1,53 @@
+## rmbackup.conf
+
+## Where to look for host configs (default: /usr/local/etc/rmbackup.d)
+#CONF_LOCATION="/usr/local/etc/rmbackup.d"
+
+## Path to the PID file (default: /var/run/rmbackup.pid)
+#PID_FILE="/var/run/rmbackup.pid"
+
+## Format for timstamp that are used to name the backups (default: %Y-%m-%d)
+## Defaults to YYYY-MM-DD. When you set this to include the hours and minutes as well, you'll have more granular backups (e.g. hourly).
+#BACKUP_TIMESTAMP_FORMAT="%Y-%m-%d"
+
+## Path to directory where we should store the logs (default: /var/log)
+#LOG_DIR="/var/log"
+
+## File name for the log file (default: rmbackup.log)
+#LOG_FILE="rmbackup.log"
+
+## Timestamp format that is used for logs (default: %Y-%m-%d %H:%M:%S)
+#LOG_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+
+# Directory where we store the backups. Sub directories are created for every host that will be backed up.
+#BACKUPS_DIR="/tank/data/backups"
+
+## Name that's used for the symlink of the latest backup (default: last)
+#LAST="last"
+
+## Name that's used for the directory of a backup that is in progress (default: inProgress)
+#INPROG="inProgress"
+
+## How many days of backups should we keep in place (default: 14)
+#GLOBAL_KEEP_DAYS=14
+
+## Path to local rsync binary (default: /usr/local/bin/rsync)
+#RSYNC_PATH="/usr/local/bin/rsync"
+
+## Default parameters for rsync (default: --del --quiet). Can be expanded in host configs
+#RSYNC_CONF_DEFAULT="--del --quiet"
+
+## Path to local ssh binary (default: /usr/bin/ssh)
+#SSH_PATH="/usr/bin/ssh"
+
+# Default path to the binary that's used for getting more privileges on the remote server like doas or sudo (default: /usr/local/bin/doas)
+#REMOTE_PRIVILEGES_PATH="/usr/local/bin/doas"
+
+## Default path to the rsync binary on the remote server (default: /usr/local/bin/rsync)
+#REMOTE_RSYNC_PATH="/usr/local/bin/rsync"
+
+## Turn on verbose mode (default: false)
+#VERBOSE="false"
+
+## Turn on debug mode (default: false)
+#DEBUG="false"

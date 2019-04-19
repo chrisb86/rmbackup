@@ -19,7 +19,7 @@ There has to be a user on the remote server that is able to run rsync with root 
 		$ visudo
 
 		# /etc/sudoers
-
+	
 		Cmnd_Alias RSYNC = /usr/bin/rsync
 		%rmbackup ALL=(ALL) NOPASSWD: RSYNC
 
@@ -62,12 +62,12 @@ There has to be a user on the remote server that is able to run rsync with root 
 		# Additional command line parameters for ssh (verbose mode, exclude patterns...
 		# see man rsync for further information)
 		# RSYNC_CONF=(-v)
-		
+	
 - Change the path to _rmbackup.d_ in rmbackup.sh:
 
 		# rmbackup.sh
-		
-		
+	
+	
 		...		
 		# Where to look for config files
 		CONFLOCATION=/etc/rmbackup.d/*.conf
@@ -82,7 +82,7 @@ There has to be a user on the remote server that is able to run rsync with root 
 		#
 		SHELL=/usr/local/bin/bash
 		PATH=/etc:/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/root
-  		
+  	  		
 		#minute hour mday month wday command
 		#
 		15 */1 * * * /home/rmbackup/bin/rmbackup.sh --backup-files
@@ -98,13 +98,13 @@ File backups will now be taken hourly. The backup of the MySQL databases will be
 - Create a new user that is only able to read and lock the databases.
 
 		$ mysql
-		> grant select, lock tables on *.* to 'rmbackup'@'localhost' identified by 'password';
+	​	> grant select, lock tables on *.* to 'rmbackup'@'localhost' identified by 'password';
 
 - We don't wan't to type the password every time the backup runs. So we create a file called .my.cnf in the home directory of the backup user on the remote server. MySQL takes the login credentials from this file
 
 
 		$ vim ~.my.cnf
-
+	
 		# ~/.my.cnf
 		
 		[client]
@@ -115,6 +115,11 @@ File backups will now be taken hourly. The backup of the MySQL databases will be
 
 
 ## Changelog
+
+**2019-04-03**
+
+- Complete rewrite, no backwards compatibility.
+- Removed all unused stuff and made this thing full POSIX compliant.
 
 **2018-01-04**
 
