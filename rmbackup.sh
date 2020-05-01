@@ -171,6 +171,14 @@ link_last () {
   unset link_source_dir
 }
 
+# Unsets the host specific variables
+# Usage: unset_config
+unset_config() {
+  chat 2 "Cleaning up variables."
+  chat 3 "unset ssh_port privileges remote_rsync_path ssh_server ssh_alias ssh_user ssh_args rsync_conf backup_target backup_last backup_timestamp remote_sources latest_backup keep SSH_PORT PRIVILEGES_PATH RSYNC_PATH SSH_SERVER SSH_ALIAS SSH_USER SSH_ARGS RSYNC_CONF REMOTE_SOURCES ERROR KEEP"
+  unset ssh_port privileges remote_rsync_path ssh_server ssh_alias ssh_user ssh_args rsync_conf backup_target backup_last backup_timestamp remote_sources latest_backup keep SSH_PORT PRIVILEGES_PATH RSYNC_PATH SSH_SERVER SSH_ALIAS SSH_USER SSH_ARGS RSYNC_CONF REMOTE_SOURCES ERROR KEEP
+}
+
 # Loads a config file and backups the host
 # Usage: backup_host CONFIGFILE
 backup_host () {
@@ -275,10 +283,7 @@ backup_host () {
 
     chat 0 "Finished backup for $ssh_alias."
 
-    chat 2 "Cleaning up variables."
-    chat 3 "unset ssh_port privileges remote_rsync_path ssh_server ssh_alias ssh_user ssh_args rsync_conf backup_target backup_last backup_timestamp remote_sources latest_backup SSH_PORT PRIVILEGES_PATH RSYNC_PATH SSH_SERVER SSH_ALIAS SSH_USER SSH_ARGS RSYNC_CONF REMOTE_SOURCES ERROR"
-
-    unset ssh_port privileges remote_rsync_path ssh_server ssh_alias ssh_user ssh_args rsync_conf backup_target backup_last backup_timestamp remote_sources latest_backup SSH_PORT PRIVILEGES_PATH RSYNC_PATH SSH_SERVER SSH_ALIAS SSH_USER SSH_ARGS RSYNC_CONF REMOTE_SOURCES ERROR
+    unset_config
   fi
 }
 
@@ -313,6 +318,8 @@ cleanup_host () {
   chat 3 "find $backup_target -type d \( ! -iname \"$backups_path_inprog\" ! -iname \"$backup_last\" ! -iname \".*\" \) -maxdepth 1 -mtime +$keep -exec rm -r '{}' '+'"
 
   find $backup_target -type d \( ! -iname "$backups_path_inprog" ! -iname "$backup_last" ! -iname ".*" \) -maxdepth 1 -mtime +$keep -exec rm -r '{}' '+'
+
+  unset_config
 }
 
 case "$1" in
